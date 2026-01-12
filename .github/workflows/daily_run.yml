@@ -3,7 +3,7 @@ name: Supabase Cron Job
 on:
   # 1. ตั้งเวลา (UTC Time) - เลข 0 1 * * * แปลว่า ตี 1 UTC (ประมาณ 8 โมงเช้าไทย)
   schedule:
-    - cron: '30 23 * * *' 
+    - cron: '0 0 * * *' 
   
   # 2. ปุ่มกดมือ (เผื่ออยากกดสั่งรันเดี๋ยวนี้)
   workflow_dispatch:
