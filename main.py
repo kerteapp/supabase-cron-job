@@ -2,37 +2,36 @@ import os
 import requests
 from supabase import create_client
 
-# รับค่า
+# 1. รับค่า (User ID ไม่ต้องใช้แล้วในโหมดนี้ แต่ค้างไว้ไม่เป็นไร)
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 LINE_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
-LINE_USER_ID = os.environ.get("LINE_USER_ID")
 
-# ฟังก์ชันส่ง LINE
-def send_line_push(message):
-    url = 'https://api.line.me/v2/bot/message/push'
+# 2. ฟังก์ชันส่ง LINE แบบ Broadcast (ส่งหาทุกคนที่เป็นเพื่อน)
+def send_line_broadcast(message):
+    url = 'https://api.line.me/v2/bot/message/broadcast' # <-- เปลี่ยน URL เป็น broadcast
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {LINE_ACCESS_TOKEN}'
     }
+    # ไม่ต้องระบุ "to" แล้ว เพราะส่งหาทุกคน
     data = {
-        "to": LINE_USER_ID,
         "messages": [{"type": "text", "text": message}]
     }
     try:
         response = requests.post(url, headers=headers, json=data)
         if response.status_code == 200:
-            print("✅ ส่ง LINE สำเร็จ! (ถ้าไม่เด้งให้เช็ค UserID)")
+            print("✅ ส่ง Broadcast สำเร็จ! (ทุกคนควรได้รับ)")
         else:
             print(f"❌ ส่งไม่ผ่าน: {response.text}")
     except Exception as e:
         print(f"❌ Error: {e}")
 
-# เริ่มทำงาน
+# 3. เริ่มทำงาน
 if __name__ == "__main__":
-    print("⏳ เริ่มทำงาน (เวอร์ชันใหม่)...")
+    print("⏳ เริ่มทำงาน (โหมด Broadcast)...")
     
-    if not all([SUPABASE_URL, SUPABASE_KEY, LINE_ACCESS_TOKEN, LINE_USER_ID]):
+    if not all([SUPABASE_URL, SUPABASE_KEY, LINE_ACCESS_TOKEN]):
         print("Error: กุญแจไม่ครบ!")
     else:
         try:
@@ -40,8 +39,10 @@ if __name__ == "__main__":
             response = supabase.table('users').select("*", count='exact').execute()
             count = len(response.data)
             
-            msg = f"🤖 Test Bot\nสมาชิก: {count} คน"
-            send_line_push(msg)
+            msg = f"🤖 ประกาศจากบอท\nสมาชิกทั้งหมด: {count} คน"
+            
+            # เรียกใช้ฟังก์ชันใหม่
+            send_line_broadcast(msg)
             
         except Exception as e:
             print(f"Error: {e}")
