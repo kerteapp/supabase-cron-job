@@ -30,24 +30,22 @@ def send_line_push(message):
 
 # 3. เริ่มทำงาน
 if __name__ == "__main__":
-    print("⏳ เริ่มทำงาน...")
+    print("⏳ เริ่มทำงาน (เวอร์ชันส่งไลน์)...")
     
     # เช็คกุญแจ
     if not all([SUPABASE_URL, SUPABASE_KEY, LINE_ACCESS_TOKEN, LINE_USER_ID]):
-        print("Error: กุญแจไม่ครบ! กรุณาเช็ค GitHub Secrets")
+        print("Error: กุญแจไม่ครบ! กรุณาเช็ค GitHub Secrets และไฟล์ daily_run.yml")
     else:
-        # เชื่อมต่อ Supabase
         try:
+            # เชื่อมต่อ Supabase
             supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
             
             # ดึงข้อมูล (นับจำนวนคน)
             response = supabase.table('users').select("*", count='exact').execute()
             count = len(response.data)
             
-            # ข้อความที่จะส่ง
-            msg = f"🤖 รายงานจาก Supabase\nขณะนี้มีสมาชิก: {count} คน"
-            
             # ส่งเข้ามือถือ
+            msg = f"🤖 รายงานจาก Supabase\nขณะนี้มีสมาชิก: {count} คน"
             send_line_push(msg)
             
         except Exception as e:
