@@ -1,0 +1,36 @@
+name: Supabase Cron Job
+
+on:
+  # 1. ตั้งเวลา (UTC Time) - เลข 0 1 * * * แปลว่า ตี 1 UTC (ประมาณ 8 โมงเช้าไทย)
+  schedule:
+    - cron: '0 1 * * *' 
+  
+  # 2. ปุ่มกดมือ (เผื่ออยากกดสั่งรันเดี๋ยวนี้)
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ดึงโค้ดเรามา
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # ติดตั้ง Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      # ติดตั้ง Library (supabase)
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      # รันไฟล์ Python พร้อมส่ง Key เข้าไป
+      - name: Run script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: python main.py
