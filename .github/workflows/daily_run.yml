@@ -43,4 +43,8 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+          AZURE_SERVER: ${{ secrets.AZURE_SERVER }}
+          AZURE_DB: ${{ secrets.AZURE_DB }}
+          AZURE_USER: ${{ secrets.AZURE_USER }}
+          AZURE_PASS: ${{ secrets.AZURE_PASS }}
         run: python main.py
