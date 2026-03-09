@@ -82,7 +82,7 @@ if __name__ == "__main__":
         cursor_oracle = conn_oracle.cursor()
         
         # ⚠️ แก้ชื่อ Table ของ Oracle ตรงนี้นะครับ
-        cursor_oracle.execute("SELECT COUNT(*) FROM your_oracle_table")
+        cursor_oracle.execute("SELECT COUNT(*) FROM EMPLOYEES")
         count_oracle = cursor_oracle.fetchone()[0]
         conn_oracle.close()
         
