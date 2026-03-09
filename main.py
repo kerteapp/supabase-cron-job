@@ -73,7 +73,7 @@ if __name__ == "__main__":
         cursor = conn.cursor()
         
         # ⚠️ เปลี่ยน your_table_name เป็นชื่อตารางจริงด้วยนะครับ
-        cursor.execute("SELECT COUNT(*) FROM your_table_name")
+        cursor.execute("SELECT COUNT(*) FROM Users")
         count_azure = cursor.fetchone()[0]
         conn.close()
         
