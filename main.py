@@ -3,7 +3,7 @@ import requests
 import pymssql
 from supabase import create_client
 
-# รับค่ากุญแจ
+# 1. รับค่ากุญแจ
 LINE_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
@@ -12,6 +12,7 @@ AZURE_DB = os.environ.get("AZURE_DB")
 AZURE_USER = os.environ.get("AZURE_USER")
 AZURE_PASS = os.environ.get("AZURE_PASS")
 
+# 2. ฟังก์ชันส่ง LINE
 def send_line_broadcast(message):
     url = 'https://api.line.me/v2/bot/message/broadcast'
     headers = {
@@ -21,6 +22,7 @@ def send_line_broadcast(message):
     data = {"messages": [{"type": "text", "text": message}]}
     requests.post(url, headers=headers, json=data)
 
+# 3. เริ่มทำงาน
 if __name__ == "__main__":
     print("⏳ กำลังดึงข้อมูล...")
     report_lines = ["📊 สรุปข้อมูลประจำวัน"]
@@ -38,16 +40,21 @@ if __name__ == "__main__":
 
     # --- 2. Azure SQL ---
     try:
-        # 💡 ทริคของ Azure: ตัดเอาชื่อเซิร์ฟเวอร์ท่อนแรกมาต่อท้าย Username
+        # บังคับประกอบร่าง Username ใหม่ให้ถูกต้อง 100%
         server_prefix = str(AZURE_SERVER).split('.')[0]
-        # ถ้าในกุญแจมี @ อยู่แล้วก็ไม่ต้องเติมซ้ำ
-        full_azure_user = AZURE_USER if "@" in str(AZURE_USER) else f"{AZURE_USER}@{server_prefix}"
+        actual_user = str(AZURE_USER)
+        if "@" not in actual_user:
+            actual_user = f"{actual_user}@{server_prefix}"
+            
+        # ปรินต์เช็คเพื่อความชัวร์ (จะแสดงใน Log)
+        print(f"🔍 [Debug] ระบบกำลังส่ง Username นี้ไปล็อกอิน: {actual_user}")
         
         conn = pymssql.connect(
             server=AZURE_SERVER,
-            user=full_azure_user, # ใช้ Username ที่ประกอบร่างใหม่
+            user=actual_user,
             password=AZURE_PASS,
-            database=AZURE_DB
+            database=AZURE_DB,
+            port="1433" # ล็อกพอร์ตมาตรฐานของ Azure SQL ไว้เลย
         )
         cursor = conn.cursor()
         
