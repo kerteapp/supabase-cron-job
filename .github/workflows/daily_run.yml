@@ -46,4 +46,8 @@ jobs:
           AZURE_DB: ${{ secrets.AZURE_DB }}
           AZURE_USER: ${{ secrets.AZURE_USER }}
           AZURE_PASS: ${{ secrets.AZURE_PASS }}
+          # 👇 เพิ่ม 3 บรรทัดนี้สำหรับ Oracle
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+          ORACLE_PASS: ${{ secrets.ORACLE_PASS }}
+          ORACLE_DSN: ${{ secrets.ORACLE_DSN }}
         run: python main.py
