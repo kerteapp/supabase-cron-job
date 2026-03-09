@@ -1,6 +1,6 @@
 import os
 import requests
-import pyodbc
+import pymssql  # <--- เปลี่ยนมาใช้ตัวนี้แทน
 from supabase import create_client
 
 # รับค่ากุญแจ
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     print("⏳ กำลังดึงข้อมูล...")
     report_lines = ["📊 สรุปข้อมูลประจำวัน"]
     
-    # --- PostgreSQL ---
+    # --- 1. PostgreSQL ---
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         response = supabase.table('users').select("*", count='exact').execute()
@@ -36,20 +36,18 @@ if __name__ == "__main__":
         report_lines.append(f"🔴 PostgreSQL ล้มเหลว")
         print(f"❌ Error PostgreSQL: {e}")
 
-    # --- Azure SQL ---
+    # --- 2. Azure SQL (เวอร์ชันใหม่ ใช้ pymssql) ---
     try:
-        conn_str = (
-            "DRIVER={ODBC Driver 18 for SQL Server};"
-            f"SERVER=tcp:{AZURE_SERVER},1433;"
-            f"DATABASE={AZURE_DB};"
-            f"UID={AZURE_USER};"
-            f"PWD={AZURE_PASS};"
-            "Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;" 
+        # เชื่อมต่อง่ายขึ้นเยอะครับ ไม่ต้องระบุ Driver ให้วุ่นวาย
+        conn = pymssql.connect(
+            server=AZURE_SERVER,
+            user=AZURE_USER,
+            password=AZURE_PASS,
+            database=AZURE_DB
         )
-        conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
         
-        # ⚠️ แก้ชื่อ Table เป็นของคุณตรงนี้นะครับ
+        # ⚠️ อย่าลืมแก้ชื่อ Table เป็นของคุณตรงนี้นะครับ
         cursor.execute("SELECT COUNT(*) FROM your_table_name")
         count_azure = cursor.fetchone()[0]
         conn.close()
@@ -58,9 +56,9 @@ if __name__ == "__main__":
         print("✅ ดึงข้อมูล Azure SQL สำเร็จ")
     except Exception as e:
         report_lines.append(f"🔴 Azure SQL ล้มเหลว")
-        # 👇 บรรทัดนี้แหละครับที่ผมลืมใส่รอบที่แล้ว!
         print(f"❌ Error Azure: {e}") 
 
+    # --- ส่งเข้า LINE ---
     final_message = "\n".join(report_lines)
     send_line_broadcast(final_message)
     print("✅ ส่งรายงานเข้า LINE เรียบร้อย!")
