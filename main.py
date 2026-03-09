@@ -1,9 +1,9 @@
 import os
 import requests
-import pymssql
+import pyodbc
 from supabase import create_client
 
-# 1. รับค่ากุญแจ
+# รับค่ากุญแจ
 LINE_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
@@ -12,7 +12,6 @@ AZURE_DB = os.environ.get("AZURE_DB")
 AZURE_USER = os.environ.get("AZURE_USER")
 AZURE_PASS = os.environ.get("AZURE_PASS")
 
-# 2. ฟังก์ชันส่ง LINE
 def send_line_broadcast(message):
     url = 'https://api.line.me/v2/bot/message/broadcast'
     headers = {
@@ -22,7 +21,6 @@ def send_line_broadcast(message):
     data = {"messages": [{"type": "text", "text": message}]}
     requests.post(url, headers=headers, json=data)
 
-# 3. เริ่มทำงาน
 if __name__ == "__main__":
     print("⏳ กำลังดึงข้อมูล...")
     report_lines = ["📊 สรุปข้อมูลประจำวัน"]
@@ -38,24 +36,40 @@ if __name__ == "__main__":
         report_lines.append(f"🔴 PostgreSQL ล้มเหลว")
         print(f"❌ Error PostgreSQL: {e}")
 
-    # --- 2. Azure SQL ---
+    # --- 2. Azure SQL (เวอร์ชัน Auto-detect Driver) ---
     try:
-        # บังคับประกอบร่าง Username ใหม่ให้ถูกต้อง 100%
+        # 💡 ให้ Python ค้นหาว่า GitHub มี Driver ชื่ออะไรติดตั้งอยู่
+        driver_list = pyodbc.drivers()
+        print(f"🔍 ไดรเวอร์ที่มีในเครื่อง: {driver_list}")
+        
+        sql_driver = None
+        for d in driver_list:
+            if 'SQL Server' in d:
+                sql_driver = f"{{{d}}}"
+                break
+                
+        if not sql_driver:
+            # ถ้าหาไม่เจอจริงๆ ให้บังคับใช้ตัวมาตรฐาน
+            sql_driver = "{ODBC Driver 18 for SQL Server}"
+
+        print(f"🎯 เลือกใช้ Driver: {sql_driver}")
+
+        # ประกอบร่าง Username 
         server_prefix = str(AZURE_SERVER).split('.')[0]
         actual_user = str(AZURE_USER)
         if "@" not in actual_user:
             actual_user = f"{actual_user}@{server_prefix}"
-            
-        # ปรินต์เช็คเพื่อความชัวร์ (จะแสดงใน Log)
-        print(f"🔍 [Debug] ระบบกำลังส่ง Username นี้ไปล็อกอิน: {actual_user}")
-        
-        conn = pymssql.connect(
-            server=AZURE_SERVER,
-            user=actual_user,
-            password=AZURE_PASS,
-            database=AZURE_DB,
-            port="1433" # ล็อกพอร์ตมาตรฐานของ Azure SQL ไว้เลย
+
+        # เชื่อมต่อ (pyodbc จะเก่งเรื่องการจัดการพอร์ตของ Azure ครับ)
+        conn_str = (
+            f"DRIVER={sql_driver};"
+            f"SERVER=tcp:{AZURE_SERVER},1433;"
+            f"DATABASE={AZURE_DB};"
+            f"UID={actual_user};"
+            f"PWD={AZURE_PASS};"
+            "Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;"
         )
+        conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
         
         # ⚠️ เปลี่ยน your_table_name เป็นชื่อตารางจริงด้วยนะครับ
