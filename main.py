@@ -1,7 +1,7 @@
 import os
 import requests
 import pyodbc
-import oracledb  # <-- ไลบรารีใหม่สำหรับ Oracle
+import oracledb
 from supabase import create_client
 
 # 1. รับค่ากุญแจทั้งหมด
@@ -64,8 +64,8 @@ if __name__ == "__main__":
         conn_azure = pyodbc.connect(conn_str)
         cursor_azure = conn_azure.cursor()
         
-        # ⚠️ แก้ชื่อ Table ของ Azure ตรงนี้นะครับ
-        cursor_azure.execute("SELECT COUNT(*) FROM users")
+        # คิวรีตาราง Users ของ Azure
+        cursor_azure.execute("SELECT COUNT(*) FROM Users")
         count_azure = cursor_azure.fetchone()[0]
         conn_azure.close()
         
@@ -77,16 +77,15 @@ if __name__ == "__main__":
 
     # --- 3. Oracle DB ---
     try:
-        # เชื่อมต่อ Oracle แบบ mTLS (ใช้ Wallet กุญแจ cwallet.sso)
+        # เชื่อมต่อ Oracle แบบ One-Way TLS (พอร์ต 1521) ไม่ต้องใช้ Wallet
         conn_oracle = oracledb.connect(
             user=ORACLE_USER, 
             password=ORACLE_PASS, 
-            dsn=ORACLE_DSN,
-            wallet_location="."  # <--- เพิ่มบรรทัดนี้เข้ามาครับ!
+            dsn=ORACLE_DSN
         )
         cursor_oracle = conn_oracle.cursor()
         
-        # ⚠️ แก้ชื่อ Table ของ Oracle ตรงนี้นะครับ
+        # คิวรีตาราง EMPLOYEES ของ Oracle
         cursor_oracle.execute("SELECT COUNT(*) FROM EMPLOYEES")
         count_oracle = cursor_oracle.fetchone()[0]
         conn_oracle.close()
