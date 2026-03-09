@@ -77,8 +77,13 @@ if __name__ == "__main__":
 
     # --- 3. Oracle DB ---
     try:
-        # เชื่อมต่อ Oracle แบบ Thin mode (ไม่ต้องใช้ Instant Client)
-        conn_oracle = oracledb.connect(user=ORACLE_USER, password=ORACLE_PASS, dsn=ORACLE_DSN)
+        # เชื่อมต่อ Oracle แบบ mTLS (ใช้ Wallet กุญแจ cwallet.sso)
+        conn_oracle = oracledb.connect(
+            user=ORACLE_USER, 
+            password=ORACLE_PASS, 
+            dsn=ORACLE_DSN,
+            wallet_location="."  # <--- เพิ่มบรรทัดนี้เข้ามาครับ!
+        )
         cursor_oracle = conn_oracle.cursor()
         
         # ⚠️ แก้ชื่อ Table ของ Oracle ตรงนี้นะครับ
