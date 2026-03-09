@@ -65,7 +65,7 @@ if __name__ == "__main__":
         cursor_azure = conn_azure.cursor()
         
         # ⚠️ แก้ชื่อ Table ของ Azure ตรงนี้นะครับ
-        cursor_azure.execute("SELECT COUNT(*) FROM your_azure_table")
+        cursor_azure.execute("SELECT COUNT(*) FROM users")
         count_azure = cursor_azure.fetchone()[0]
         conn_azure.close()
         
