@@ -1,6 +1,6 @@
 import os
 import requests
-import pymssql  # <--- เปลี่ยนมาใช้ตัวนี้แทน
+import pymssql
 from supabase import create_client
 
 # รับค่ากุญแจ
@@ -36,18 +36,22 @@ if __name__ == "__main__":
         report_lines.append(f"🔴 PostgreSQL ล้มเหลว")
         print(f"❌ Error PostgreSQL: {e}")
 
-    # --- 2. Azure SQL (เวอร์ชันใหม่ ใช้ pymssql) ---
+    # --- 2. Azure SQL ---
     try:
-        # เชื่อมต่อง่ายขึ้นเยอะครับ ไม่ต้องระบุ Driver ให้วุ่นวาย
+        # 💡 ทริคของ Azure: ตัดเอาชื่อเซิร์ฟเวอร์ท่อนแรกมาต่อท้าย Username
+        server_prefix = str(AZURE_SERVER).split('.')[0]
+        # ถ้าในกุญแจมี @ อยู่แล้วก็ไม่ต้องเติมซ้ำ
+        full_azure_user = AZURE_USER if "@" in str(AZURE_USER) else f"{AZURE_USER}@{server_prefix}"
+        
         conn = pymssql.connect(
             server=AZURE_SERVER,
-            user=AZURE_USER,
+            user=full_azure_user, # ใช้ Username ที่ประกอบร่างใหม่
             password=AZURE_PASS,
             database=AZURE_DB
         )
         cursor = conn.cursor()
         
-        # ⚠️ อย่าลืมแก้ชื่อ Table เป็นของคุณตรงนี้นะครับ
+        # ⚠️ เปลี่ยน your_table_name เป็นชื่อตารางจริงด้วยนะครับ
         cursor.execute("SELECT COUNT(*) FROM your_table_name")
         count_azure = cursor.fetchone()[0]
         conn.close()
